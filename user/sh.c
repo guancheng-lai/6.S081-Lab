@@ -143,6 +143,30 @@ getcmd(char *buf, int nbuf)
   return 0;
 }
 
+void
+pingpong() {
+  int p[2];
+  pipe(p);
+  int pid = fork();
+  if (pid == 0) {
+    // Child 
+    char data[5];
+    read(p[0], data, 4);
+    printf("%d: received %s\n", getpid(), data);
+    write(p[1], "pong", 4);
+    exit(0);
+  } else if (pid > 0) {
+    // Parent
+    write(p[1], "ping", 4);
+    wait(NULL);
+    char data[5];
+    read(p[0], data, 4);
+    printf("%d: received %s\n", getpid(), data);
+  } else {
+    fprintf(2, "Failed to fork\n");
+  }
+}
+
 int
 main(void)
 {
@@ -172,6 +196,10 @@ main(void)
         fprintf(2, "not enough arg \n");
       }
       sleep(atoi(buf + 6) * 10);
+      continue;
+    }
+    if (strlen(buf) == 9 && memcmp("pingpong", buf, 8) == 0) {
+      pingpong();
       continue;
     }
     if(fork1() == 0)
