@@ -4,6 +4,8 @@
 #include "user/user.h"
 #include "kernel/fcntl.h"
 
+#include <stddef.h>
+
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -162,6 +164,14 @@ main(void)
       buf[strlen(buf)-1] = 0;  // chop \n
       if(chdir(buf+3) < 0)
         fprintf(2, "cannot cd %s\n", buf+3);
+      continue;
+    }
+    if (memcmp("sleep", buf, 5) == 0) {
+      // Sleep
+      if (strlen(buf) <= 7) {
+        fprintf(2, "not enough arg \n");
+      }
+      sleep(atoi(buf + 6) * 10);
       continue;
     }
     if(fork1() == 0)
